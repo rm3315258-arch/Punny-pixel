@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Simple Photo Editor</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.0/fabric.min.js"></script>
+</head>
+<body>
+    <input type="file" id="fileInput" accept="image/*">
+    <canvas id="canvas" width="800" height="600"></canvas>
+    <button id="cropBtn">Crop</button>
+    <button id="filterBtn">Apply Sepia Filter</button>
+    <button id="downloadBtn">Download</button>
+
+    <script>
+        const canvas = new fabric.Canvas('canvas');
+        const fileInput = document.getElementById('fileInput');
+        const cropBtn = document.getElementById('cropBtn');
+        const filterBtn = document.getElementById('filterBtn');
+        const downloadBtn = document.getElementById('downloadBtn');
+
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            const reader = new FileReader();
+            reader.onload = (f) => {
+                fabric.Image.fromURL(f.target.result, (img) => {
+                    canvas.add(img);
+                    canvas.renderAll();
+                });
+            };
+            reader.readAsDataURL(file);
+        });
+
+        cropBtn.addEventListener('click', () => {
+            const activeObject = canvas.getActiveObject();
+            if (activeObject) {
+                activeObject.clipTo = (ctx) => {
+                    ctx.rect(100, 100, 200, 200); // Example crop area
+                };
+                canvas.renderAll();
+            }
+        });
+
+        filterBtn.addEventListener('click', () => {
+            const activeObject = canvas.getActiveObject();
+            if (activeObject && activeObject.type === 'image') {
+                activeObject.filters.push(new fabric.Image.filters.Sepia());
+                activeObject.applyFilters();
+                canvas.renderAll();
+            }
+        });
+
+        downloadBtn.addEventListener('click', () => {
+            const link = document.createElement('a');
+            link.download = 'edited-image.png';
+            link.href = canvas.toDataURL();
+            link.click();
+        });
+    </script>
+</body>
+</html>
